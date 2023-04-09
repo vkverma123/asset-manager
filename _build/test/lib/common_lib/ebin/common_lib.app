@@ -1,0 +1,10 @@
+{application,common_lib,
+             [{applications,[kernel,stdlib,elixir,logger,constructor,decimal,
+                             ecto,jason,opentelemetry,opentelemetry_api,
+                             decorator]},
+              {description,"common_lib"},
+              {modules,['Elixir.CommonLib.Constructor',
+                        'Elixir.CommonLib.Constructor.BuiltInType',
+                        'Elixir.CommonLib.Timestamp']},
+              {registered,[]},
+              {vsn,"0.2.0"}]}.

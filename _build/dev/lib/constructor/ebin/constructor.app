@@ -1,0 +1,10 @@
+{application,constructor,
+             [{applications,[kernel,stdlib,elixir,logger,morphix,
+                             typed_struct]},
+              {description,"A library for declaratively defining structs with field-level coercions and validations"},
+              {modules,['Elixir.Constructor','Elixir.Constructor.Convert',
+                        'Elixir.Constructor.Exception',
+                        'Elixir.Constructor.TypedStructPlugin',
+                        'Elixir.Constructor.Validate']},
+              {registered,[]},
+              {vsn,"1.1.0"}]}.
