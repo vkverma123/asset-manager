@@ -72,3 +72,15 @@ Further, please refer the following details :
  - It can be tested locally. I have thoroughly tested in my local machine with different test scenarios and it's working fine. I have mentioned the steps in README.md and refer to snapshots for payload info.
  - Please refer to router.ex in the code for API Paths.
 
+
+
+Note: 
+There can be one more way to return the sum every hour from the write model.
+So, I have also raised a small PR : https://github.com/vkverma123/asset-manager/pull/1 (Pull Request) for rolling sum logic. If this app is facing huge amount of traffic, then while inserting the data in the write model, we can firstly fetch the existing amount and update the entry of amount by doing the sum of existing amount and upcoming new amount for that hour. PR is not yet merged.
+It will be more efficient. It's just one more way to make it bit faster even though I already have index on created_at column.
+ 
+<img width="1028" alt="Screen Shot 2566-04-13 at 16 17 09" src="https://user-images.githubusercontent.com/87823879/231724982-ae5703d1-6239-4fe1-a494-bf8b0e1f23ed.png">
+<img width="1225" alt="Screen Shot 2566-04-13 at 16 17 31" src="https://user-images.githubusercontent.com/87823879/231725009-b5d0f6e8-a40b-4fcf-9a61-751c9133ced8.png">
+<img width="939" alt="Screen Shot 2566-04-13 at 16 17 48" src="https://user-images.githubusercontent.com/87823879/231725018-d3afbe98-9b1a-4eaa-b8fb-6d6ea77d37f9.png">
+<img width="915" alt="Screen Shot 2566-04-13 at 16 18 26" src="https://user-images.githubusercontent.com/87823879/231725041-e51a2672-4c35-4240-9687-c63ee15a5791.png">
+
