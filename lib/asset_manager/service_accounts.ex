@@ -29,8 +29,8 @@ defmodule AssetManager.ServiceAccounts do
     DepositTransaction
     |> where([b], b.created_at >= ^start_datetime and b.created_at <= ^end_datetime)
     |> order_by([b], asc: b.created_at)
-    |> select([b], %{hour: b.created_at, amount: sum(b.amount)})
-    |> group_by([b], b.created_at)
+    |> distinct([b], b.created_at)
+    |> select([b], %{hour: b.created_at, amount: sum(b.amount) |> over(order_by: b.created_at)})
     |> Repo.all()
   end
 
