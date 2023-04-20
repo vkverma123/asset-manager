@@ -21,17 +21,60 @@ defmodule AssetManagerWeb.Actions.ListBalances do
     if DateTime.compare(utc_start_datetime, utc_end_datetime) in [:gt] do
       {:error, :start_datetime_should_be_prior_to_end_datetime}
     else
-      balances = AssetManager.ServiceAccounts.list_balances(utc_start_datetime, utc_end_datetime)
+      utc_start_datetime_to_prev_hour = round_datetime_to_next_hour(utc_start_datetime)
+      utc_end_datetime_to_next_hour = round_datetime_to_next_hour(utc_end_datetime)
+
+      balances =
+        AssetManager.ServiceAccounts.list_balances(
+          utc_start_datetime_to_prev_hour,
+          utc_end_datetime_to_next_hour
+        )
+
+      result = calculate(balances, utc_start_datetime_to_prev_hour, utc_end_datetime_to_next_hour)
 
       {:ok,
-       balances
-       |> Enum.map(fn %{hour: hour, amount: amount} ->
+       result
+       |> Enum.map(fn {hour, amount} ->
          %{
            "datetime" => hour |> Timex.format!("%Y-%m-%dT%H:%M:%S%:z", :strftime),
-           "amount" => amount |> Decimal.normalize() |> Decimal.to_string(:normal)
+           "amount" => format_amount(amount)
          }
        end)}
     end
+  end
+
+  @spec calculate(list(), DateTime.t(), DateTime.t()) :: list()
+  defp calculate(data, start_time, end_time) do
+    duration = DateTime.diff(end_time, start_time)
+    hours = div(duration, 3600) + 1
+
+    timestamps =
+      for i <- 0..(hours - 1),
+          do: DateTime.add(start_time, i * 3600) |> Timex.set(microsecond: {0, 6})
+
+    amounts =
+      data
+      |> Enum.reduce(%{}, fn %{amount: amount, hour: hour}, acc ->
+        Map.put(acc, hour, amount)
+      end)
+
+    result =
+      timestamps
+      |> Enum.reduce(%{}, fn timestamp, acc ->
+        if timestamp < Map.get(amounts, :hour) do
+          Map.put(acc, timestamp, 0)
+        else
+          case Map.get(amounts, timestamp) do
+            nil ->
+              Map.put(acc, timestamp, Map.get(acc, timestamp |> Timex.shift(hours: -1)))
+
+            amount ->
+              Map.put(acc, timestamp, amount)
+          end
+        end
+      end)
+
+    result
   end
 
   def get_utc_datetime(dt) do
@@ -40,4 +83,14 @@ defmodule AssetManagerWeb.Actions.ListBalances do
 
     utc_datetime
   end
+
+  defp round_datetime_to_next_hour(%DateTime{} = dt) do
+    dt
+    |> Timex.shift(microseconds: -1)
+    |> Timex.shift(hours: 1)
+    |> Timex.set(minute: 0, second: 0, microsecond: {0, 6})
+  end
+
+  defp format_amount(nil), do: 0
+  defp format_amount(amount), do: amount |> Decimal.normalize() |> Decimal.to_string(:normal)
 end
